@@ -6,6 +6,7 @@ import { Colors } from "../styles/colors";
 import { Coordinate, Direction, GestureEventType } from '../types/types';
 import { View } from 'react-native';
 import Snake from './snake';
+import { checkGameOver } from '../utils/checkGameOver';
 
 
 const SNAKE_INITIAL_POSITION = [{ x: 5, y: 5}];
@@ -23,6 +24,46 @@ export default function Game():JSX.Element {
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [isPaused, setIsPaused] = useState<boolean>(false);
 
+    React.useEffect(() => {
+        if (!isGameOver) {
+            const intervalId = setInterval(() => {
+                !isPaused && moveSnake();
+            },MOVE_INTERVAL )
+            return () => clearInterval(intervalId);
+        }
+    }, [snake, isGameOver, isPaused])
+
+    const moveSnake = () => {
+        const snakeHead = snake[0];
+        const newHead = {  ...snakeHead } // creating a copy
+
+if (checkGameOver(snakeHead, GAME_BOUNDS)) {
+    setIsGameOver((prev => !prev));
+    return;
+}
+
+        switch (direction) {
+            case Direction.Up:
+                newHead.y -= 1;
+                break;
+            case Direction.Down:
+                newHead.y += 1;
+                break;
+            case Direction.Left:
+                newHead.x -= 1;
+                break;
+            case Direction.Right:
+                newHead.x += 1;
+                break;
+            default:
+                break;
+        }
+
+        // if eats food
+        //grow snake
+
+        setSnake([newHead, ...snake.slice(0,-1)]);
+    };
 
     const handleGesture = (event: GestureEventType) => {
         const { translationX, translationY } = event.nativeEvent;
@@ -65,9 +106,9 @@ const styles = StyleSheet.create({
     boundaries: {
       flex: 1,
       borderColor: Colors.primary,
-      borderWidth: 12,
+      borderWidth: 9,
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30,
-      backgroundColor: Colors.background,
+      backgroundColor: Colors.tertiary,
     },
   });
